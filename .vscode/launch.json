@@ -1,0 +1,39 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Pipeline: ingest",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/main.py",
+      "args": ["ingest"],
+      "console": "integratedTerminal",
+      "env": { "PYTHONHASHSEED": "42" }
+    },
+    {
+      "name": "Pipeline: all",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/main.py",
+      "args": ["all"],
+      "console": "integratedTerminal",
+      "env": { "PYTHONHASHSEED": "42" }
+    },
+    {
+      "name": "Streamlit: app",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "streamlit",
+      "args": ["run", "${workspaceFolder}/app/streamlit_app.py"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Pytest: arquivo atual",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["${file}", "--no-cov", "-x"],
+      "console": "integratedTerminal"
+    }
+  ]
+}

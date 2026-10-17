@@ -1,0 +1,7 @@
+# Caminhos relativos à raiz do projeto (resolvidos por src/config/settings.py).
+paths:
+  bronze: data/bronze   # dados exatamente como recebidos (snapshots imutáveis + manifest)
+  silver: data/silver   # limpos, tipados, deduplicados e validados
+  gold: data/gold       # curva de juros pronta para o app
+  reports: reports
+  logs: logs

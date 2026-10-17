@@ -1,0 +1,18 @@
+# Parâmetros do módulo financeiro.
+#
+# ATENÇÃO: alíquotas e taxas mudam por legislação/regulamento. Os valores abaixo
+# refletem a regra que o projeto assume (IR regressivo sobre o rendimento e taxa de
+# custódia da B3). CONFIRA AS REGRAS VIGENTES no Tesouro Direto / B3 / Receita Federal
+# antes de usar os resultados para qualquer decisão.
+finance:
+  # Faixas do IR regressivo: prazo de aplicação em dias corridos (limite superior
+  # inclusivo) e alíquota sobre o rendimento.
+  ir_brackets:
+    - { max_days: 180, rate: 0.225 }
+    - { max_days: 360, rate: 0.20 }
+    - { max_days: 720, rate: 0.175 }
+  ir_floor_rate: 0.15            # acima da última faixa (> 720 dias)
+  custody_fee_annual: 0.002      # taxa de custódia B3 (0,20% a.a.), rateada por dia corrido
+  business_days_per_year: 252    # convenção de dias úteis do mercado
+  projected_ipca_annual: 0.04    # IPCA anual assumido para o período ainda não realizado
+  projected_selic_annual: 0.10   # Selic anual assumida para o período ainda não realizado

@@ -1,0 +1,22 @@
+# Configurações gerais do projeto (validadas em runtime por src/config/settings.py).
+project:
+  name: simulador-tesouro-direto
+  version: "0.1.0"
+  random_seed: 42
+
+ingestion:
+  cache_ttl_hours: 24        # dentro deste prazo o snapshot local é reutilizado (sem rede)
+  timeout_seconds: 60
+  user_agent: "simulador-tesouro-direto/0.1 (portfolio de ciencia de dados)"
+  tesouro:
+    # Conferir a URL vigente no portal Tesouro Transparente (conjunto "Taxas dos Títulos
+    # Ofertados pelo Tesouro Direto"), pois o endereço do recurso pode mudar.
+    url: "https://www.tesourotransparente.gov.br/ckan/dataset/df56aa42-484a-4a59-8184-7676580c81e3/resource/796d2059-14e9-44e3-80c9-2d9e30b405c1/download/PrecoTaxaTesouroDireto.csv"
+    filename: PrecoTaxaTesouroDireto.csv
+  bcb:
+    base_url: "https://api.bcb.gov.br/dados/serie"
+    start_date: 2002-01-01   # o histórico do Tesouro Direto começa em 2002
+    max_window_years: 9      # a API SGS limita consultas diárias a janelas de 10 anos
+    series:
+      selic_daily: 11        # Taxa de juros - Selic (% a.d.)
+      ipca_monthly: 433      # IPCA - variação mensal (%)

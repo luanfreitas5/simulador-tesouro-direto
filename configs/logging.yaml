@@ -1,0 +1,5 @@
+# Configuração de logging (src/config/logging.py).
+logging:
+  level: INFO            # DEBUG | INFO | WARNING | ERROR | CRITICAL
+  file_enabled: true     # grava em logs/log_YYYY-MM-DD.log
+  retention_days: 30
