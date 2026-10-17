@@ -1,0 +1,21 @@
+site_name: Simulador do Tesouro Direto
+site_description: Curva de juros histórica e simulador de rentabilidade real do Tesouro Direto
+repo_url: https://github.com/luanfreitas5/simulador-tesouro-direto
+
+theme:
+  name: material
+  language: pt-BR
+
+nav:
+  - Início: index.md
+  - Premissas e limitações: premissas.md
+  - API: api.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: numpy
