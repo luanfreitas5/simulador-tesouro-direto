@@ -40,6 +40,8 @@ repos:
     hooks:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
+        # HTMLs do Plotly trazem o hash SRI (sha256 em base64) do script da CDN: falso positivo
+        exclude: ^reports/figures/.*\.html$
 
   # --- nbstripout: remove outputs de notebooks antes do commit -------------
   - repo: https://github.com/kynan/nbstripout
