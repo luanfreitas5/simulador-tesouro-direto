@@ -374,7 +374,7 @@ pathspec==1.1.1
     #   mypy
 pexpect==4.9.0 ; sys_platform != 'emscripten' and sys_platform != 'win32'
     # via ipython
-pip==26.2.1
+pip==26.2.2
     # via pip-api
 pip-api==0.0.35
     # via pip-audit
