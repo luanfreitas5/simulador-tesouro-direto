@@ -1,45 +1,49 @@
-# 📈 Simulador do Tesouro Direto
+# 📈 Simulador do Tesouro Direto: quanto sobra, de fato, depois de IR, custódia e inflação
 
 [![CI](https://github.com/luanfreitas5/simulador-tesouro-direto/actions/workflows/ci.yml/badge.svg)](https://github.com/luanfreitas5/simulador-tesouro-direto/actions/workflows/ci.yml)
-[![Tests](https://github.com/luanfreitas5/simulador-tesouro-direto/actions/workflows/tests.yml/badge.svg)](https://github.com/luanfreitas5/simulador-tesouro-direto/actions/workflows/tests.yml)
-[![Docs](https://github.com/luanfreitas5/simulador-tesouro-direto/actions/workflows/docs.yml/badge.svg)](https://luanfreitas5.github.io/simulador-tesouro-direto/)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
-[![Polars](https://img.shields.io/badge/dados-Polars-orange)](https://pola.rs)
-[![Ruff](https://img.shields.io/badge/lint-ruff-261230)](https://docs.astral.sh/ruff/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![codecov](https://codecov.io/gh/luanfreitas5/simulador-tesouro-direto/graph/badge.svg)](https://codecov.io/gh/luanfreitas5/simulador-tesouro-direto)
+[![docs](https://github.com/luanfreitas5/simulador-tesouro-direto/actions/workflows/docs.yml/badge.svg)](https://luanfreitas5.github.io/simulador-tesouro-direto/)
+[![License](https://img.shields.io/github/license/luanfreitas5/simulador-tesouro-direto)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue) <!-- = matriz do tests.yml -->
 
-Curva de juros histórica do Tesouro Direto e simulador de rentabilidade **bruta, líquida e real**
-para o mercado brasileiro.
+> **Resultado:** com R$ 10.000 comprados em 15/10/2026 e mantidos até o vencimento, o
+> **Tesouro Prefixado 2029 (12,64% a.a.)** rende **11,04% a.a. líquido (6,26% a.a. real)** contra
+> **10,47% a.a.** do benchmark Selic, enquanto o **IPCA+ 2035 (IPCA + 6,84%)** rende **10,47% a.a.
+> líquido (5,71% real)** contra **10,97%** da Selic, sob IPCA de 4,5% a.a. e Selic de 12% a.a.
+> assumidos. É uma **simulação determinística**, não um modelo preditivo: não há intervalo de
+> confiança, e a incerteza está nas premissas (ver [Limitações](#️-limitações)).
 
 > ⚠️ **Projeto educacional, sem recomendação de investimento.** Alíquotas, taxas e regras mudam.
 > **Confira as regras vigentes** (Tesouro Direto, B3 e Receita Federal) antes de usar qualquer
 > resultado. Todos os parâmetros ficam em [configs/finance.yaml](configs/finance.yaml) e na barra
 > lateral do app.
 
+![Simulador do Tesouro Direto](banner/tesouro.png)
+
 ## 🎯 Problema
 
-Taxas de títulos públicos são divulgadas como "X% ao ano" ou "IPCA + X%", mas o que importa ao
-investidor é quanto sobra **depois do imposto, da custódia e da inflação**. Comparar um
-Prefixado a um IPCA+ — ou a simplesmente deixar o dinheiro na Selic — exige juntar três coisas
-que raramente aparecem juntas: a taxa contratada na data da compra, a inflação do período e as
-regras tributárias.
-
-## ❓ Pergunta
-
-> Para uma compra feita em uma data D, de um valor V, em um título com vencimento T, qual é o
-> rendimento bruto, líquido e **real** (acima da inflação) ao vencimento — e como isso se
-> compara à Selic no mesmo prazo?
-
-Como pergunta complementar: **como a curva de juros (taxa × prazo) do Prefixado e do IPCA+ se
-deformou ao longo do tempo?**
+- **Quem decide o quê:** um investidor pessoa física escolhe entre Tesouro Prefixado, Tesouro IPCA+
+  e simplesmente manter o dinheiro na Selic para uma compra em uma data D, de valor V, com
+  vencimento T.
+- **Custo dos erros:** taxas são divulgadas como "X% ao ano" ou "IPCA + X%", mas o que importa é o
+  ganho **depois** do imposto, da custódia e da inflação. Comparar bruto com bruto superestima o
+  retorno e pode inverter a escolha entre títulos. Não há "falso positivo/negativo" aqui:
+  a métrica principal é a **rentabilidade líquida e real anualizada**, porque é a que o investidor
+  efetivamente recebe e consegue comparar com a Selic.
+- **Unidade e momento `t0`:** uma simulação por (título, vencimento, data de compra). Usa apenas a
+  taxa de compra conhecida até `t0` (tolerância de 7 dias) e o IPCA/Selic observados até `t0`;
+  depois do último dado publicado entram as **premissas do usuário**.
+- **Pergunta complementar:** como a curva de juros (taxa × prazo) do Prefixado e do IPCA+ se
+  deformou ao longo do tempo?
 
 ## 🗂️ Dados
 
-| Fonte | O que traz | Camada |
-|---|---|---|
-| [Tesouro Transparente](https://www.tesourotransparente.gov.br) — "Taxas dos Títulos Ofertados pelo Tesouro Direto" | Taxas e PUs de compra/venda por título, vencimento e data (CSV, `;`, decimal com vírgula) | `bronze/tesouro_transparente` |
-| [BCB SGS](https://dadosabertos.bcb.gov.br) série **11** | Selic diária (% a.d.) | `bronze/bcb_sgs_11` |
-| [BCB SGS](https://dadosabertos.bcb.gov.br) série **433** | IPCA, variação mensal (%) | `bronze/bcb_sgs_433` |
+| Item | Valor |
+|---|---|
+| Fonte e licença | [Tesouro Transparente](https://www.tesourotransparente.gov.br) (taxas dos títulos), [BCB SGS](https://dadosabertos.bcb.gov.br) séries 11 (Selic, % a.d.) e 433 (IPCA, % mensal) — dados abertos governamentais; conferir os termos de uso dos portais (ver Datasheets) |
+| Tamanho / período | Tesouro: 177.434 linhas silver, 31/12/2004–15/10/2026 · Selic: 6.229 linhas, 02/01/2002–16/10/2026 · IPCA: 297 meses, 01/2002–09/2026 |
+| Alvo e prevalência | Sem alvo supervisionado: o resultado é calculado (rentabilidade bruta, líquida e real) |
+| Documentação | [Datasheet Tesouro Transparente](reports/datasheets/tesouro_transparente.md) · [Datasheet BCB SGS](reports/datasheets/bcb_sgs.md) |
 
 Arquitetura medalhão (os dados **não** são versionados no Git):
 
@@ -54,20 +58,105 @@ requisição é feita; se o conteúdo baixado tiver o mesmo SHA-256, nenhum snap
 a rede falhar e houver snapshot, ele é reutilizado com um aviso. A URL do CSV é configurável em
 [configs/config.yaml](configs/config.yaml) caso o portal mude o endereço do recurso.
 
-## 🚀 Como reproduzir
+## 📊 Resultados
 
-Requisitos: Python 3.10+ e [uv](https://docs.astral.sh/uv/).
+Protocolo: execução do pipeline (`make data train`) em 17/10/2026, `seed` 42; **sem IC**, pois o
+cálculo é determinístico dado o conjunto de premissas. A comparação é com o **benchmark Selic**
+(mesmo valor, prazo, IR e custódia), o equivalente à alternativa de "não escolher título".
+
+### Execução do pipeline
+
+| Camada | Artefato | Registros | Período |
+|---|---|---:|---|
+| Silver | `tesouro_prices.parquet` | 177.434 | 31/12/2004 a 15/10/2026 |
+| Silver | `selic_daily.parquet` | 6.229 | 02/01/2002 a 16/10/2026 |
+| Silver | `ipca_monthly.parquet` | 297 | 01/2002 a 09/2026 |
+| Gold | `yield_curve.parquet` | 47.157 (28.215 Prefixado; 18.942 IPCA+) | 31/12/2004 a 15/10/2026 |
+
+Todos os contratos de dados (`pandera`) passaram e os dois gráficos HTML foram gerados em
+[`reports/figures/`](reports/figures/). A execução completa, com os dados em cache, levou cerca de 5 s.
+
+### Simulações de exemplo vs. benchmark Selic
+
+R$ 10.000 comprados em 15/10/2026 e mantidos até o vencimento, com IR regressivo e custódia de
+0,20% a.a. Para o trecho sem dado observado, assume-se IPCA de 4,5% a.a. e Selic de 12% a.a.
+(premissas do usuário, **não** previsões).
+
+| Título | Líquido final | Líquido a.a. | Real a.a. | Benchmark Selic (líquido a.a.) |
+|---|---:|---:|---:|---:|
+| Prefixado 2029 (12,64%) | R$ 12.611,67 | **11,04%** | 6,26% | 10,47% |
+| IPCA+ 2035 (IPCA + 6,84%) | R$ 23.511,07 | **10,47%** | 5,71% | 10,97% |
+
+- Diferença vs. benchmark: Prefixado 2029 **+0,57 p.p.** a.a.; IPCA+ 2035 **−0,50 p.p.** a.a.
+  Não há teste de significância: a conclusão é uma identidade aritmética das premissas e **muda se
+  elas mudarem** (o Prefixado trava 12,64%; o IPCA+ perde para uma Selic de 12% contra IPCA de 4,5%,
+  que implica juro real alto).
+- Pior cenário: o IPCA+ 2035 perde para a Selic assumida; sensibilidade a IPCA e Selic futuros é
+  a principal fonte de incerteza (ver [Model Card](reports/model_cards/simulador_rentabilidade_v0.1.0.md)).
+
+### Curva de juros na última data (15/10/2026)
+
+| Título | Vencimento | Prazo (anos) | Taxa de compra (% a.a.) |
+|---|---|---:|---:|
+| Prefixado | 01/01/2027 | 0,2 | 13,37 |
+| Prefixado | 01/01/2028 | 1,2 | 12,77 |
+| Prefixado | 01/01/2029 | 2,2 | 12,64 |
+| Prefixado | 01/01/2031 | 4,2 | 12,76 |
+| Prefixado | 01/01/2032 | 5,2 | 12,87 |
+| IPCA+ | 15/05/2029 | 2,6 | 6,77 (real) |
+| IPCA+ | 15/08/2032 | 5,8 | 6,80 (real) |
+| IPCA+ | 15/05/2035 | 8,6 | 6,84 (real) |
+| IPCA+ | 15/08/2040 | 13,8 | 6,73 (real) |
+| IPCA+ | 15/05/2045 | 18,6 | 6,73 (real) |
+| IPCA+ | 15/08/2050 | 23,8 | 6,74 (real) |
+
+A curva Prefixada está **invertida** no curto prazo (13,37% em 0,2 ano contra 12,64% em 2,2 anos),
+enquanto a curva real do IPCA+ é praticamente plana (6,7% a 6,8%).
+
+### Figuras
+
+Gráficos Plotly interativos, com slider para navegar a curva por data (abra no navegador):
+
+- [Curva do Tesouro Prefixado](reports/figures/yield_curve_tesouro_prefixado.html)
+- [Curva do Tesouro IPCA+](reports/figures/yield_curve_tesouro_ipca_mais.html)
+
+> Os números dependem da data de execução (o Tesouro atualiza os dados diariamente): esta seção é
+> um retrato de 17/10/2026. Os totais de linhas vêm dos manifestos de `data/bronze/*/manifest.json`
+> e da execução do pipeline; **ainda não há um arquivo `reports/metrics/*.json` versionado**
+> com esses números (pendência registrada no Model Card).
+
+## 🔁 Reproduzir
+
+Requisitos: [uv](https://docs.astral.sh/uv/), `make` e acesso à internet (APIs públicas; nenhuma
+credencial é necessária). Tempo: ~5 s com cache, alguns minutos na primeira ingestão.
 
 ```bash
-make install-app   # uv sync --dev --extra app (gere o uv.lock com `uv lock` na primeira vez)
-make pipeline      # ingestão (bronze) -> silver -> gold -> gráficos HTML em reports/figures/
+git clone https://github.com/luanfreitas5/simulador-tesouro-direto.git
+cd simulador-tesouro-direto
+```
+
+<!-- verify:start -->
+```bash
+uv sync --locked
+make data train
+```
+<!-- verify:end -->
+
+Em seguida, para abrir o simulador Streamlit e rodar a suíte de testes e qualidade:
+
+```bash
+make install-app   # inclui o extra do app (uv sync --locked --all-groups --extra app)
 make app           # abre o simulador Streamlit
 make test          # pytest com cobertura mínima de 80%
-make quality       # ruff, basedpyright, bandit, pip-audit, vulture, xenon, interrogate, refurb
+make check         # replica o CI: ruff, basedpyright, bandit, pip-audit, vulture, xenon, interrogate, refurb, testes
 ```
 
 Etapas isoladas: `make ingest`, `make build`, `make plots` (ou
 `uv run python src/main.py {ingest|build|plots|all} [--force]`). `--force` ignora o cache.
+
+Saída esperada (`uv.lock` do commit corrente, Python 3.13 no ambiente que gerou os números acima):
+contratos `pandera` aprovados e dois HTML em `reports/figures/`. Os valores de Resultados mudam
+a cada atualização diária dos dados do Tesouro.
 
 ## 🧮 Módulo financeiro
 
@@ -97,65 +186,6 @@ rendimento nulo (sem IR), custódia zero, prazos e valores inválidos, mês parc
 após o último dado observado, fins de semana e feriados, além de propriedades (`hypothesis`):
 líquido nunca excede o bruto, líquido é monotônico no rendimento e o IR nunca sobe com o prazo.
 
-## 📊 Resultados
-
-O projeto entrega:
-
-- **Curva de juros navegável por data** (Prefixado e IPCA+): gráfico Plotly com slider em
-  `reports/figures/yield_curve_*.html` e no app Streamlit (aba *Curva de juros*).
-- **Simulador** (aba *Simulador*): título, data de compra, valor e vencimento → valor bruto e
-  líquido final, rentabilidade líquida e real ao ano, cascata *investido → bruto → IR → custódia →
-  líquido* e comparação com a Selic no mesmo valor e prazo.
-
-### Execução do pipeline (`make pipeline`, 17/10/2026)
-
-| Camada | Artefato | Registros | Período |
-|---|---|---:|---|
-| Silver | `tesouro_prices.parquet` | 177.434 | 31/12/2004 a 15/10/2026 |
-| Silver | `selic_daily.parquet` | 6.229 | 02/01/2002 a 16/10/2026 |
-| Silver | `ipca_monthly.parquet` | 297 | 01/2002 a 09/2026 |
-| Gold | `yield_curve.parquet` | 47.157 (28.215 Prefixado; 18.942 IPCA+) | 31/12/2004 a 15/10/2026 |
-
-Todos os contratos de dados (`pandera`) passaram e os dois gráficos HTML foram gerados em
-`reports/figures/`. A execução completa, com os dados já em cache, levou cerca de 5 s.
-
-### Curva de juros na última data (15/10/2026)
-
-| Título | Vencimento | Prazo (anos) | Taxa de compra (% a.a.) |
-|---|---|---:|---:|
-| Prefixado | 01/01/2027 | 0,2 | 13,37 |
-| Prefixado | 01/01/2028 | 1,2 | 12,77 |
-| Prefixado | 01/01/2029 | 2,2 | 12,64 |
-| Prefixado | 01/01/2031 | 4,2 | 12,76 |
-| Prefixado | 01/01/2032 | 5,2 | 12,87 |
-| IPCA+ | 15/05/2029 | 2,6 | 6,77 (real) |
-| IPCA+ | 15/08/2032 | 5,8 | 6,80 (real) |
-| IPCA+ | 15/05/2035 | 8,6 | 6,84 (real) |
-| IPCA+ | 15/08/2040 | 13,8 | 6,73 (real) |
-| IPCA+ | 15/05/2045 | 18,6 | 6,73 (real) |
-| IPCA+ | 15/08/2050 | 23,8 | 6,74 (real) |
-
-A curva Prefixada está **invertida** no curto prazo (13,37% em 0,2 ano contra 12,64% em 2,2 anos),
-enquanto a curva real do IPCA+ é praticamente plana (6,7% a 6,8%).
-
-### Simulações de exemplo
-
-R$ 10.000 comprados em 15/10/2026 e mantidos até o vencimento, com IR regressivo e custódia de
-0,20% a.a. Para o trecho sem dado observado, assume-se IPCA de 4,5% a.a. e Selic de 12% a.a.
-(premissas do usuário, **não** previsões). O benchmark aplica a Selic ao mesmo valor e prazo.
-
-| Título | Líquido final | Líquido a.a. | Real a.a. | Benchmark Selic (líquido a.a.) |
-|---|---:|---:|---:|---:|
-| Prefixado 2029 (12,64%) | R$ 12.611,67 | 11,04% | 6,26% | 10,47% |
-| IPCA+ 2035 (IPCA + 6,84%) | R$ 23.511,07 | 10,47% | 5,71% | 10,97% |
-
-O Prefixado 2029 supera a Selic projetada de 12% a.a. porque trava 12,64%. Já o IPCA+ 2035 fica
-abaixo dela, pois a Selic assumida (12%) implica juro real alto frente ao IPCA de 4,5%. A
-conclusão depende inteiramente dessas premissas e muda se elas mudarem.
-
-> Os números dependem da data de execução (o Tesouro atualiza os dados diariamente), então esta
-> seção é um retrato de 17/10/2026. Para reproduzir, rode `make pipeline`.
-
 ## 📐 Premissas de cálculo
 
 1. **Mantido até o vencimento.** Não há venda antecipada nem marcação a mercado.
@@ -180,6 +210,32 @@ conclusão depende inteiramente dessas premissas e muda se elas mudarem.
 9. **Rentabilidade real.** `(1 + retorno líquido) / (1 + inflação do período) − 1` (Fisher), e
    anualizada por dias corridos / 365.
 
+## 🧱 Estrutura
+
+```
+configs/        YAML validados com Pydantic (config, paths, finance) + logging.yaml (dictConfig)
+src/            config, constants, data, preprocessing, schemas, features, finance,
+                pipelines, visualization, utils, exceptions, main.py
+app/            streamlit_app.py
+tests/          unitários, propriedades (hypothesis) e integração (sem rede)
+notebooks/      01_eda_curva_de_juros.ipynb
+data/           bronze | silver | gold (fora do Git)
+reports/        figures/, model_cards/, datasheets/
+docs/           MkDocs Material + mkdocstrings
+```
+
+Decisões de engenharia (cada uma justificada):
+
+- **Polars em vez de pandas** para os dados tabulares (`pandas` permanece apenas para datas/séries
+  temporais pontuais).
+- **Contratos Pandera** em cada fronteira de camada: falha cedo em vez de propagar corrupção silenciosa.
+- **Download injetável**: testes de ingestão rodam sem rede.
+- **Logging** configurado uma única vez no ponto de entrada, via `dictConfig` em
+  [configs/logging.yaml](configs/logging.yaml): console Rich (compartilhado com a barra de
+  progresso) e arquivo `logs/log_AAAA-MM-DD.log` com rotação diária.
+- **Pre-commit só com checagens rápidas** (ruff, detect-secrets, nbstripout, commitizen, smoke tests);
+  tipos, segurança, complexidade e suíte completa ficam no CI e em `make check`.
+
 ## ⚠️ Limitações
 
 - **Regras e alíquotas mudam**; os valores acima são parâmetros configuráveis, não verdade
@@ -192,28 +248,12 @@ conclusão depende inteiramente dessas premissas e muda se elas mudarem.
   pequenas são esperadas.
 - **Calendário.** Sem feriados nacionais, a contagem de dias úteis é ligeiramente maior que a real.
 - **Projeções são premissas**, não previsões; resultados com muito período futuro dependem
-  fortemente do IPCA e da Selic assumidos.
+  fortemente do IPCA e da Selic assumidos. Não há análise de sensibilidade quantificada nem
+  validação externa contra o simulador oficial do Tesouro Direto.
 - **Dados:** o CSV traz as taxas "da manhã"; a execução efetiva da compra pode ocorrer em outro
   preço. A URL do recurso no Tesouro Transparente pode mudar.
 - **Sem recomendação de investimento.** Projeto de portfólio com fins educacionais.
 
-## 🧱 Estrutura
+## 📄 Licença e citação
 
-```
-configs/        YAML validados com Pydantic (config, paths, finance, logging)
-src/            config, constants, data, preprocessing, schemas, features, finance,
-                pipelines, visualization, utils, exceptions, main.py
-app/            streamlit_app.py
-tests/          unitários, propriedades (hypothesis) e integração (sem rede)
-notebooks/      01_eda_curva_de_juros.ipynb
-data/           bronze | silver | gold (fora do Git)
-docs/           MkDocs Material + mkdocstrings
-```
-
-Decisões de engenharia: Polars (sem pandas), contratos de dados Pandera em cada fronteira de
-camada, download injetável (testes sem rede), logs em pt-BR com Rich e arquivo diário, hooks de
-pre-commit rápidos e checagens pesadas no CI.
-
-## 📄 Licença
-
-[MIT](LICENSE)
+MIT — ver [LICENSE](LICENSE). Não há artigo associado, portanto não há `CITATION.cff`.

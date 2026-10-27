@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -13,7 +13,8 @@ from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, Settings
 from config.paths import CONFIGS_DIR, ROOT
 from exceptions import ConfigurationError
 
-CONFIG_FILES: tuple[str, ...] = ("config.yaml", "paths.yaml", "finance.yaml", "logging.yaml")
+# logging.yaml é dictConfig puro, aplicado por config.logging.configure_logging (não validado aqui).
+CONFIG_FILES: tuple[str, ...] = ("config.yaml", "paths.yaml", "finance.yaml")
 
 TESOURO_CSV_URL = (
     "https://www.tesourotransparente.gov.br/ckan/dataset/"
@@ -120,14 +121,6 @@ class FinanceSettings(StrictModel):
     projected_selic_annual: float = Field(default=0.10, gt=-1, lt=1)
 
 
-class LoggingSettings(StrictModel):
-    """Parâmetros de logging."""
-
-    level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
-    file_enabled: bool = True
-    retention_days: int = Field(default=30, gt=0)
-
-
 class Settings(BaseSettings):
     """Configuração global do projeto.
 
@@ -145,7 +138,6 @@ class Settings(BaseSettings):
     paths: PathsSettings = Field(default_factory=PathsSettings)
     ingestion: IngestionSettings = Field(default_factory=IngestionSettings)
     finance: FinanceSettings = Field(default_factory=FinanceSettings)
-    logging: LoggingSettings = Field(default_factory=LoggingSettings)
 
     @classmethod
     def settings_customise_sources(

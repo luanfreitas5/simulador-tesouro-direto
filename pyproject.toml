@@ -53,6 +53,7 @@ app = [
 # CLAUDE.md, "Import style"). O pytest resolve os imports por
 # `pythonpath = ["src"]` e `src/main.py` é executado diretamente.
 package = false
+default-groups = ["dev", "quality", "docs"]  # `uv sync --dev` do CI continua cobrindo todas as ferramentas
 required-environments = [
     "sys_platform == 'win32' and platform_machine == 'AMD64'",
     "sys_platform == 'linux' and platform_machine == 'x86_64'",
@@ -60,53 +61,45 @@ required-environments = [
 
 # --- Dependências de desenvolvimento (não publicadas; PEP 735) --------------
 [dependency-groups]
+# Dia a dia: lint, testes e hooks (rápidos)
 dev = [
-    # Lint + format
     "ruff>=0.5",                    # linter e formatador (substitui flake8/isort/black)
-    # Type checking (roda no CI, não no pre-commit)
-    "basedpyright>=1.13",           # type checker estático (substitui mypy)
-    # Segurança (roda no CI)
-    "bandit>=1.7",                  # análise de segurança do código
-    "pip-audit>=2.7",               # auditoria de vulnerabilidades das dependências
+    "basedpyright>=1.13",           # type checker estático (substitui mypy; roda no CI)
+    "pytest>=8.2",
+    "pytest-cov>=5.0",
+    "hypothesis>=6.165.0",          # testes baseados em propriedades
+    "pre-commit>=3.7",
+    "commitizen>=4.16.5",           # Conventional Commits + CHANGELOG
     "detect-secrets>=1.5",          # detecção de segredos
-    # Qualidade / complexidade / docstrings
+    "nbstripout>=0.7",              # remove saídas de notebooks antes do commit
+    "nbqa>=1.8",                    # ferramentas de qualidade em notebooks
+]
+# Checagens pesadas (CI e `make check`)
+quality = [
+    "bandit[toml]>=1.7",            # análise de segurança do código
+    "pip-audit>=2.7",               # auditoria de vulnerabilidades das dependências
     "vulture>=2.11",                # código morto
     "refurb>=2.0",                  # sugestões de modernização
     "xenon>=0.9",                   # limites de complexidade
     "radon>=6.0",                   # métricas de complexidade
     "interrogate>=1.7",             # cobertura de docstrings
-    # Testes
-    "pytest>=8.2",
-    "pytest-cov>=5.0",
-    "hypothesis>=6.165.0",          # testes baseados em propriedades
-    # Notebooks
-    "nbqa>=1.8",
-    "nbstripout>=0.7",
-    # Workflow
-    "pre-commit>=3.7",
-    "commitizen>=4.16.5",
-    # Documentação
+]
+docs = [
     "mkdocs-material>=9.7.7",
     "mkdocstrings[python]>=1.0.6",
-    # Profiling (use sob demanda)
+]
+# Uso sob demanda: profiling e Jupyter no VSCode
+extras = [
     "scalene>=1.5",
-    # Jupyter no VSCode
     "ipykernel>=7.3.0",
     "ipywidgets>=8.1.8",
     "jupyterlab>=4.6.3",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project.urls]
 Homepage = "https://github.com/luanfreitas5/simulador-tesouro-direto"
 Documentation = "https://luanfreitas5.github.io/simulador-tesouro-direto/"
 Repository = "https://github.com/luanfreitas5/simulador-tesouro-direto"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src"]
 
 
 # =============================================================================
@@ -136,6 +129,8 @@ select = [
     "RUF",    # regras específicas do Ruff
     "PL",     # pylint (subconjunto)
     "TRY",    # tryceratops
+    "S",      # flake8-bandit (segurança)
+    "D",      # pydocstyle (docstrings, convenção numpy)
 ]
 ignore = [
     "PLR0913", # muitos argumentos — comum em funções financeiras
@@ -146,6 +141,9 @@ ignore = [
     "RUF001",  # caractere ambíguo em string — tipografia pt-BR intencional
     "RUF002",  # idem, em docstrings
     "PERF203", # try/except em loop — usado para isolar falhas por item
+    "D203",    # conflita com D211
+    "D213",    # conflita com D212
+    "D401",    # exige modo imperativo em inglês; docstrings em pt-BR usam a 3ª pessoa
 ]
 
 [tool.ruff.lint.isort]
@@ -169,9 +167,9 @@ known-first-party = [
 convention = "numpy"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["ARG", "E501", "PLR2004", "S101"]  # fixtures, valores fixos e asserts em testes
-"notebooks/*" = ["B018", "E402", "F401", "F821"]  # B018: expressão final exibe o objeto na célula
-"app/*" = ["E402"]                      # sys.path precisa ser ajustado antes dos imports
+"tests/*" = ["ARG", "D", "E501", "PLR2004", "S101"]  # fixtures, valores fixos e asserts em testes
+"notebooks/*" = ["B018", "D", "E402", "F401", "F821", "S101"]  # B018: expressão final exibe o objeto na célula
+"app/*" = ["D", "E402"]                      # sys.path precisa ser ajustado antes dos imports
 "src/main.py" = ["E402"]
 
 [tool.ruff.format]
@@ -222,6 +220,7 @@ ignore = [
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = [
+    "-ra",
     "--strict-markers",
     "--cov=src",
     "--cov-report=term-missing",
@@ -247,6 +246,7 @@ omit = [
 [tool.coverage.report]
 fail_under = 80
 show_missing = true
+exclude_also = ["if __name__ == .__main__.:"]
 
 # =============================================================================
 # INTERROGATE — cobertura de docstrings

@@ -85,11 +85,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     try:
         settings = load_settings(args.config_dir)
-        configure_logging(
-            level=args.log_level or settings.logging.level,
-            log_dir=settings.paths.logs if settings.logging.file_enabled else None,
-            retention_days=settings.logging.retention_days,
-        )
+        configure_logging(level=args.log_level, config_path=args.config_dir / "logging.yaml")
         run(args.command, settings, force=args.force)
     except TesouroError:
         logger.exception("Execução interrompida")

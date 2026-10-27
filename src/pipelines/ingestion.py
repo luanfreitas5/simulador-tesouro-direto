@@ -15,8 +15,10 @@ from rich.progress import (
     TaskProgressColumn,
     TextColumn,
     TimeElapsedColumn,
+    TimeRemainingColumn,
 )
 
+from config.logging import CONSOLE
 from config.settings import Settings
 from data.bcb import ingest_sgs_series
 from data.downloader import Fetcher, http_get
@@ -73,6 +75,8 @@ def run_ingestion(
         MofNCompleteColumn(),
         TaskProgressColumn(),
         TimeElapsedColumn(),
+        TimeRemainingColumn(),
+        console=CONSOLE,  # mesmo console do RichHandler: logs aparecem acima da barra
     )
     paths: dict[str, Path] = {}
     with progress:

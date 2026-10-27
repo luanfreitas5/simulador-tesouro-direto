@@ -1,3 +1,4 @@
+# Atalhos reprodutíveis. `make check` replica o CI localmente.
 # --- Configuração ----------------------------------------------------------
 RUN := uv run python src/main.py    # 'src' vira raiz do path ao rodar o script
 
@@ -7,10 +8,10 @@ export PYTHONHASHSEED := 42
 
 .DEFAULT_GOAL := help
 .PHONY: help init venv install install-app update lock export \
-	lint typecheck security deadcode complexity docstrings modernize quality \
+	lint format typecheck security deadcode complexity docstrings modernize quality check \
 	test smoke test-all coverage hooks pre-commit update-hooks release \
 	docs docs-serve docs-deploy profile clean cache jupyter \
-	ingest build plots pipeline app \
+	ingest build plots pipeline app data train reproduce \
 	clean-gold clean-silver clean-reports
 
 help:  ## Lista os alvos disponíveis
@@ -24,15 +25,16 @@ init:  ## Inicializa o projeto (instala dependências + hooks)
 venv:  ## Cria o ambiente virtual (requer: uv)
 	uv venv
 
-install:  ## Instala dependências (runtime + dev)
-	uv sync --dev
+install:  ## Instala dependências (runtime + todos os grupos) e os hooks do pre-commit
+	uv sync --locked --all-groups
+	uv run pre-commit install --hook-type pre-commit --hook-type commit-msg
 
 install-app:  ## Instala dependências + extra do aplicativo Streamlit
-	uv sync --dev --extra app
+	uv sync --locked --all-groups --extra app
 
 update:  ## Atualiza todas as dependências e sincroniza
 	uv lock --upgrade
-	uv sync --all-groups
+	uv sync --all-groups --extra app
 
 lock:  ## Gera/atualiza o uv.lock
 	uv lock
@@ -53,13 +55,23 @@ plots:  ## Gera o gráfico HTML da curva de juros navegável por data
 pipeline:  ## Executa ingestão + processamento + gráficos
 	$(RUN) all
 
+data: ingest build  ## Alias: bronze -> silver -> gold (usado na seção "Reproduzir" do README)
+
+train: pipeline  ## Alias: projeto sem treino de modelo; executa o pipeline completo
+
+reproduce: pipeline  ## Reproduz os artefatos de ponta a ponta (sem DVC neste projeto)
+
 app:  ## Sobe o simulador Streamlit (requer: make install-app e make pipeline)
 	uv run --extra app streamlit run app/streamlit_app.py
 
 # --- Qualidade -------------------------------------------------------------
-lint: ## Lint com ruff (Format + Check)
-	uv run ruff format .
+lint:  ## Lint com ruff (somente verifica; espelha o CI)
+	uv run ruff check .
+	uv run ruff format --check .
+
+format:  ## Formata e corrige com ruff
 	uv run ruff check --fix .
+	uv run ruff format .
 
 typecheck:  ## Type checking estático (basedPyright)
 	uv run basedpyright
@@ -80,7 +92,9 @@ docstrings:  ## Cobertura de docstrings (interrogate)
 modernize:  ## Detecta código redundante (refurb)
 	uv run refurb src
 
-quality: lint typecheck security deadcode complexity docstrings modernize   ## Roda toda a suíte de qualidade (espelha o CI)
+quality: lint typecheck security deadcode complexity docstrings modernize  ## Roda toda a suíte de qualidade (espelha o CI)
+
+check: quality test  ## Roda tudo o que o CI roda (qualidade + testes com cobertura)
 
 # --- Testes ----------------------------------------------------------------
 test:  ## Roda os testes com cobertura

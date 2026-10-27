@@ -9,8 +9,10 @@ from typing import Any
 
 import polars as pl
 import pytest
+import yaml
 
 from config.logging import configure_logging
+from config.paths import CONFIGS_DIR
 from config.settings import Settings
 from constants.artifacts import GOLD_YIELD_CURVE, SILVER_IPCA, SILVER_SELIC, SILVER_TESOURO
 from exceptions import DataNotFoundError
@@ -89,14 +91,20 @@ def test_cli_returns_error_code_on_invalid_config(tmp_path: Path) -> None:
 
 
 def test_configure_logging_creates_daily_file(tmp_path: Path) -> None:
-    """O arquivo log_AAAA-MM-DD.log é criado e recebe mensagens."""
-    configure_logging("INFO", tmp_path / "logs")
+    """O arquivo de log é criado a partir do dictConfig e recebe mensagens."""
+    config = yaml.safe_load((CONFIGS_DIR / "logging.yaml").read_text(encoding="utf-8"))
+    config["handlers"]["file"]["filename"] = str(tmp_path / "logs" / "log.log")
+    config_path = tmp_path / "logging.yaml"
+    config_path.write_text(yaml.safe_dump(config), encoding="utf-8")
+
+    configure_logging(level="DEBUG", config_path=config_path)
     logging.getLogger("teste").info("mensagem de teste")
     root = logging.getLogger()
+    assert root.level == logging.DEBUG
     for handler in root.handlers[:]:
         handler.flush()
         handler.close()
         root.removeHandler(handler)
-    files = list((tmp_path / "logs").glob("log_*.log"))
+    files = list((tmp_path / "logs").glob("log*.log"))
     assert len(files) == 1
     assert "mensagem de teste" in files[0].read_text(encoding="utf-8")

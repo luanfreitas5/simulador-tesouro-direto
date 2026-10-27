@@ -6,11 +6,11 @@ as regras vigentes antes de usar os resultados.
 
 Módulos
 -------
-parameters
+``parameters``
     ``TaxParams``: faixas do IR regressivo, taxa de custódia e convenções de prazo.
 calendar
     ``count_business_days``: dias úteis entre duas datas (fins de semana + feriados).
-returns
+``returns``
     Fatores de crescimento (prefixado, IPCA+, Selic) e fator de inflação.
 simulation
     ``simulate_from_growth``: rentabilidade bruta, líquida e real (``SimulationResult``).
