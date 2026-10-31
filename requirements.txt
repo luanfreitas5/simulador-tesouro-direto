@@ -455,7 +455,7 @@ tzdata==2026.5
     #   python-dateutil
 urllib3==2.8.0
     # via requests
-virtualenv==21.15.0
+virtualenv==21.15.1
     # via pre-commit
 vulture==2.16
 watchdog==6.0.0
