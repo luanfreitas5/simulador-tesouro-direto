@@ -324,7 +324,7 @@ pymdown-extensions==12.3
     #   mkdocstrings
 pyparsing==3.3.3
     # via pip-requirements-parser
-pytest==9.1.1
+pytest==9.2.0
     # via pytest-cov
 pytest-cov==7.1.0
 python-dateutil==3.0.0
