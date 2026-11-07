@@ -186,7 +186,7 @@ msgpack==1.2.4
     # via cachecontrol
 mypy==2.4.0
     # via refurb
-mypy-extensions==1.1.0
+mypy-extensions==1.2.0
     # via
     #   mypy
     #   typing-inspect
